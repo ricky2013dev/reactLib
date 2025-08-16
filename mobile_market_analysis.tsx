@@ -1,6 +1,78 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Calendar, Smartphone, TrendingUp, MapPin } from 'lucide-react';
+import { Calendar, Smartphone, TrendingUp, MapPin, Globe } from 'lucide-react';
+
+// 다국어 텍스트
+const translations = {
+  en: {
+    title: "US Smartphone Market Analysis Dashboard",
+    subtitle: "Analysis of monthly sales by major mobile companies by state",
+    selectMonth: "Select Month",
+    selectState: "Select State",
+    selectCompany: "Select Company",
+    allMonths: "All Months",
+    allStates: "All States", 
+    allCompanies: "All Companies",
+    totalSales: "Total Sales",
+    totalRevenue: "Total Revenue",
+    activeStates: "Active States",
+    brands: "Brands",
+    units: "Units",
+    million: "Million",
+    states: "States",
+    monthlyTrend: "Monthly Sales Trend",
+    marketShare: "Market Share",
+    stateMap: "State Sales Map",
+    stateRanking: "State Sales Ranking",
+    companyComparison: "Company Sales Comparison",
+    detailData: "Detailed Data",
+    month: "Month",
+    state: "State",
+    company: "Company",
+    sales: "Sales",
+    revenue: "Revenue",
+    mapClickTip: "💡 Click on circles in the map to select/deselect specific states.",
+    selected: "Selected",
+    moreData: "additional data available.",
+    salesVolume: "Sales Volume",
+    low: "Low",
+    high: "High"
+  },
+  ko: {
+    title: "미국 스마트폰 시장 분석 대시보드",
+    subtitle: "주요 모바일 회사의 주별 월간 판매량 분석",
+    selectMonth: "월 선택",
+    selectState: "주 선택", 
+    selectCompany: "회사 선택",
+    allMonths: "전체 월",
+    allStates: "전체 주",
+    allCompanies: "전체 회사",
+    totalSales: "총 판매량",
+    totalRevenue: "총 매출",
+    activeStates: "활성 주",
+    brands: "브랜드 수",
+    units: "대",
+    million: "백만 달러",
+    states: "개 주",
+    monthlyTrend: "월간 판매 트렌드",
+    marketShare: "시장 점유율",
+    stateMap: "주별 판매량 지도",
+    stateRanking: "주별 판매량 순위",
+    companyComparison: "회사별 판매량 비교",
+    detailData: "상세 데이터",
+    month: "월",
+    state: "주",
+    company: "회사",
+    sales: "판매량",
+    revenue: "매출",
+    mapClickTip: "💡 지도의 원을 클릭하여 특정 주를 선택/해제할 수 있습니다.",
+    selected: "선택됨",
+    moreData: "개의 추가 데이터가 있습니다.",
+    salesVolume: "판매량",
+    low: "낮음",
+    high: "높음"
+  }
+};
 
 // 샘플 데이터 생성
 const generateSalesData = () => {
@@ -82,7 +154,7 @@ const stateCoordinates = {
 };
 
 // 지도 컴포넌트
-const USMap = ({ stateData, onStateClick, selectedState }) => {
+const USMap = ({ stateData, onStateClick, selectedState, t }) => {
   const maxSales = Math.max(...stateData.map(d => d.sales));
   
   const getCircleSize = (sales) => {
@@ -142,15 +214,15 @@ const USMap = ({ stateData, onStateClick, selectedState }) => {
       
       {/* 범례 */}
       <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-md">
-        <div className="text-xs font-medium text-gray-700 mb-2">판매량</div>
+        <div className="text-xs font-medium text-gray-700 mb-2">{t.salesVolume}</div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-blue-200"></div>
-            <span className="text-xs text-gray-600">낮음</span>
+            <span className="text-xs text-gray-600">{t.low}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 rounded-full bg-blue-600"></div>
-            <span className="text-xs text-gray-600">높음</span>
+            <span className="text-xs text-gray-600">{t.high}</span>
           </div>
         </div>
       </div>
@@ -162,7 +234,9 @@ const SmartphoneDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState('2024-12');
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCompany, setSelectedCompany] = useState('All');
+  const [language, setLanguage] = useState('en');
   
+  const t = translations[language];
   const salesData = useMemo(() => generateSalesData(), []);
   
   const months = [...new Set(salesData.map(d => d.month))].sort();
@@ -218,7 +292,9 @@ const SmartphoneDashboard = () => {
   const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
   
   const formatNumber = (num) => {
-    return new Intl.NumberFormat('ko-KR').format(num);
+    return language === 'ko' ? 
+      new Intl.NumberFormat('ko-KR').format(num) :
+      new Intl.NumberFormat('en-US').format(num);
   };
   
   const totalSales = filteredData.reduce((sum, d) => sum + d.sales, 0);
@@ -228,11 +304,27 @@ const SmartphoneDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-            <Smartphone className="text-blue-600" />
-            미국 스마트폰 시장 분석 대시보드
-          </h1>
-          <p className="text-gray-600">주요 모바일 회사의 주별 월간 판매량 분석</p>
+          <div className="flex justify-between items-start mb-4">
+            <div></div>
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+                <Smartphone className="text-blue-600" />
+                {t.title}
+              </h1>
+              <p className="text-gray-600">{t.subtitle}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Globe className="text-gray-600 w-5 h-5" />
+              <select 
+                value={language} 
+                onChange={(e) => setLanguage(e.target.value)}
+                className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                <option value="en">English</option>
+                <option value="ko">한국어</option>
+              </select>
+            </div>
+          </div>
         </header>
         
         {/* 필터 컨트롤 */}
@@ -241,14 +333,14 @@ const SmartphoneDashboard = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                월 선택
+                {t.selectMonth}
               </label>
               <select 
                 value={selectedMonth} 
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="All">전체 월</option>
+                <option value="All">{t.allMonths}</option>
                 {months.map(month => (
                   <option key={month} value={month}>{month}</option>
                 ))}
@@ -258,14 +350,14 @@ const SmartphoneDashboard = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <MapPin className="inline w-4 h-4 mr-1" />
-                주 선택
+                {t.selectState}
               </label>
               <select 
                 value={selectedState} 
                 onChange={(e) => setSelectedState(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="All">전체 주</option>
+                <option value="All">{t.allStates}</option>
                 {states.map(state => (
                   <option key={state} value={state}>{state}</option>
                 ))}
@@ -275,14 +367,14 @@ const SmartphoneDashboard = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <TrendingUp className="inline w-4 h-4 mr-1" />
-                회사 선택
+                {t.selectCompany}
               </label>
               <select 
                 value={selectedCompany} 
                 onChange={(e) => setSelectedCompany(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="All">전체 회사</option>
+                <option value="All">{t.allCompanies}</option>
                 {companies.map(company => (
                   <option key={company} value={company}>{company}</option>
                 ))}
@@ -294,27 +386,27 @@ const SmartphoneDashboard = () => {
         {/* KPI 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">총 판매량</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.totalSales}</h3>
             <p className="text-3xl font-bold text-blue-600">{formatNumber(totalSales)}</p>
-            <p className="text-sm text-gray-500">대</p>
+            <p className="text-sm text-gray-500">{t.units}</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">총 매출</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.totalRevenue}</h3>
             <p className="text-3xl font-bold text-green-600">${formatNumber(Math.floor(totalRevenue / 1000000))}M</p>
-            <p className="text-sm text-gray-500">백만 달러</p>
+            <p className="text-sm text-gray-500">{t.million}</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">활성 주</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.activeStates}</h3>
             <p className="text-3xl font-bold text-purple-600">{selectedState === 'All' ? states.length : 1}</p>
-            <p className="text-sm text-gray-500">개 주</p>
+            <p className="text-sm text-gray-500">{t.states}</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">브랜드 수</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.brands}</h3>
             <p className="text-3xl font-bold text-orange-600">{selectedCompany === 'All' ? companies.length : 1}</p>
-            <p className="text-sm text-gray-500">개 브랜드</p>
+            <p className="text-sm text-gray-500">{language === 'ko' ? '개 브랜드' : 'Brands'}</p>
           </div>
         </div>
         
@@ -322,7 +414,7 @@ const SmartphoneDashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* 월간 트렌드 차트 */}
           <div className="xl:col-span-2 bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">월간 판매 트렌드</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">{t.monthlyTrend}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyTrendData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -345,7 +437,7 @@ const SmartphoneDashboard = () => {
           
           {/* 시장 점유율 파이 차트 */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">시장 점유율</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">{t.marketShare}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -362,7 +454,7 @@ const SmartphoneDashboard = () => {
                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [formatNumber(value), '판매량']} />
+                <Tooltip formatter={(value) => [formatNumber(value), t.sales]} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -374,10 +466,10 @@ const SmartphoneDashboard = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <MapPin className="text-blue-600" />
-              주별 판매량 지도
+              {t.stateMap}
               {selectedState !== 'All' && (
                 <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                  {selectedState} 선택됨
+                  {selectedState} {t.selected}
                 </span>
               )}
             </h3>
@@ -385,21 +477,22 @@ const SmartphoneDashboard = () => {
               stateData={stateData} 
               onStateClick={handleStateClick}
               selectedState={selectedState}
+              t={t}
             />
             <p className="text-sm text-gray-600 mt-2">
-              💡 지도의 원을 클릭하여 특정 주를 선택/해제할 수 있습니다.
+              {t.mapClickTip}
             </p>
           </div>
 
           {/* 주별 판매량 차트 */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">주별 판매량 순위</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">{t.stateRanking}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={stateData.slice(0, 10)}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="shortState" />
                 <YAxis tickFormatter={formatNumber} />
-                <Tooltip formatter={(value) => [formatNumber(value), '판매량']} />
+                <Tooltip formatter={(value) => [formatNumber(value), t.sales]} />
                 <Bar dataKey="sales" fill="#8884d8">
                   {stateData.slice(0, 10).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.state === selectedState ? '#ef4444' : '#8884d8'} />
@@ -412,13 +505,13 @@ const SmartphoneDashboard = () => {
         
         {/* 회사별 비교 차트 */}
         <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">회사별 판매량 비교</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">{t.companyComparison}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={marketShareData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis tickFormatter={formatNumber} />
-              <Tooltip formatter={(value) => [formatNumber(value), '판매량']} />
+              <Tooltip formatter={(value) => [formatNumber(value), t.sales]} />
               <Bar dataKey="value" fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
@@ -426,16 +519,16 @@ const SmartphoneDashboard = () => {
         
         {/* 데이터 테이블 */}
         <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">상세 데이터</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">{t.detailData}</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">월</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">주</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">회사</th>
-                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">판매량</th>
-                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">매출</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">{t.month}</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">{t.state}</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">{t.company}</th>
+                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">{t.sales}</th>
+                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">{t.revenue}</th>
                 </tr>
               </thead>
               <tbody>
@@ -452,7 +545,7 @@ const SmartphoneDashboard = () => {
             </table>
             {filteredData.length > 10 && (
               <p className="text-center text-gray-500 mt-4">
-                {filteredData.length - 10}개의 추가 데이터가 있습니다.
+                {formatNumber(filteredData.length - 10)} {t.moreData}
               </p>
             )}
           </div>
